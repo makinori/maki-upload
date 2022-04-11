@@ -10,7 +10,7 @@ services:
             - ./public:/public
         environment:
             - PUBLIC_PATH=/public
-            - TOKEN=cutetoes
+            - TOKEN=cuteshoes
             - PORT=8080
         labels:
             - traefik.enable=true

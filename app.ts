@@ -10,7 +10,7 @@ import { Base64 } from "https://deno.land/x/bb64@1.1.0/mod.ts";
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
 const port = parseInt(Deno.env.get("PORT") ?? "8080");
-const token = Deno.env.get("TOKEN") ?? "cutetoes";
+const token = Deno.env.get("TOKEN") ?? "cuteshoes";
 const publicPath =
 	Deno.env.get("PUBLIC_PATH") ?? path.resolve(__dirname, "public");
 

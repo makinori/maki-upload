@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Maki Upload</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Product+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap"
+			rel="stylesheet"
+		/>
+		<style type="text/css">
+			body {
+				margin: 0;
+				font-family: "Roboto", sans-serif;
+				background-image: url([backgroundDataUri]);
+				background-size: cover;
+				background-position: 50% 0;
+				background-repeat: no-repeat;
+				width: 100vw;
+				height: 100vh;
+				/*image-rendering: pixelated;*/
+				color: #fff;
+			}
+
+			#bg {
+				position: fixed;
+				margin: auto;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				/* background: linear-gradient(
+					0deg,
+					#1d1f21,
+					rgba(29, 31, 33, 0.4)
+				); */
+				background: linear-gradient(0deg, #1d1f21, transparent);
+			}
+
+			#content {
+				position: fixed;
+				margin: auto;
+				bottom: 50px;
+				left: 50px;
+				width: 350px;
+			}
+
+			p,
+			h2 {
+				margin: 0;
+			}
+
+			h1 {
+				font-size: 48px;
+				line-height: 42px;
+				margin-bottom: 12px;
+				font-family: "Product Sans";
+				color: #fff;
+			}
+
+			input,
+			textarea,
+			button {
+				width: 100%;
+				display: block;
+				margin-bottom: 8px;
+				padding: 8px 0px;
+				border: none;
+				border-radius: 4px;
+				background-color: #444;
+				font-family: "Roboto", sans-serif;
+				font-size: 16px;
+				text-align: center;
+				color: #fff;
+			}
+
+			textarea {
+				overflow: hidden;
+				text-align: left;
+				resize: none;
+				padding: 8px 12px;
+				font-family: "Roboto Mono", monospace;
+				width: 430px;
+			}
+
+			input[type="file"] {
+				padding: 0;
+				background-color: transparent;
+			}
+
+			input[type="submit"],
+			button {
+				background-color: #e91e63;
+				font-weight: 500;
+			}
+
+			input:focus,
+			textarea:focus {
+				outline: none;
+			}
+
+			a,
+			a:active,
+			a:hover,
+			a:link {
+				text-decoration: inherit;
+				color: #e91e63;
+			}
+
+			#links {
+				opacity: 0.4;
+			}
+
+			#links a {
+				color: #fff;
+				cursor: pointer;
+			}
+
+			form {
+				width: 250px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="bg"></div>
+		<div id="content">
+			<a href="/u/"><h1>maki upload</h1></a><br />
+			<div id="page-upload">
+				<form
+					method="post"
+					action="/u/api/upload"
+					enctype="multipart/form-data"
+				>
+					<input type="file" multiple name="files" />
+					<input type="password" name="token" placeholder="Token" />
+					<button type="submit">Upload File(s)</button>
+				</form>
+			</div>
+			<div id="page-scripts" style="display: none">
+				<h2>Bash Script</h2>
+				<textarea rows="3">
+echo "$(curl -F token="" -F files=@$1 "https://maki.cafe/u/api/upload")" | cut -c 3- | rev | cut -c 3- | rev</textarea
+				>
+				<br />
+				<h2>ShareX</h2>
+				<textarea rows="6">
+{"Name":"maki.cafe/u","Arguments":{"token":""},"DestinationType":"ImageUploader,TextUploader,FileUploader","RequestType":"POST","RequestURL":"https://maki.cafe/u/api/upload","FileFormName":"files","ResponseType":"Text","URL":"$json:[0]$"}</textarea
+				>
+			</div>
+			<br />
+			<p id="links">
+				<a id="page-button-upload">Upload</a>
+				<span style="padding: 0 8px">|</span>
+				<a id="page-button-scripts">Scripts</a>
+				<span style="padding: 0 8px">|</span>
+				<a href="https://maki.cafe">maki.cafe</a>
+			</p>
+		</div>
+		<script>
+			const pages = ["upload", "scripts"].map(name => {
+				document
+					.getElementById("page-button-" + name)
+					.addEventListener("click", () => {
+						changePage(name);
+					});
+				return {
+					name,
+					element: document.getElementById("page-" + name),
+				};
+			});
+
+			function changePage(name) {
+				for (const page of pages) {
+					page.element.style.display =
+						page.name == name ? "block" : "none";
+				}
+			}
+		</script>
+	</body>
+</html>

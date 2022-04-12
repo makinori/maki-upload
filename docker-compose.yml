@@ -6,6 +6,7 @@ networks:
 services:
     maki-upload:
         build: .
+        restart: always
         volumes:
             - ./public:/public
         environment:

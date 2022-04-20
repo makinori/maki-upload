@@ -12,7 +12,6 @@
 			body {
 				margin: 0;
 				font-family: "Roboto", sans-serif;
-				background-image: url([backgroundDataUri]);
 				background-size: cover;
 				background-position: 50% 0;
 				background-repeat: no-repeat;
@@ -121,7 +120,7 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body style="background-image: url([backgroundUrl])">
 		<div id="bg"></div>
 		<div id="content">
 			<a href="/u/"><h1>maki upload</h1></a><br />
@@ -174,6 +173,13 @@ echo "$(curl -F token="" -F files=@$1 "https://maki.cafe/u/api/upload")" | cut -
 					page.element.style.display =
 						page.name == name ? "block" : "none";
 				}
+			}
+
+			const currentBackgroundMatches =
+				document.body.style.backgroundImage.match(/\/([0-9]+)\.jpg/);
+
+			if (currentBackgroundMatches != null) {
+				document.cookie = "lastbg=" + currentBackgroundMatches[1];
 			}
 		</script>
 	</body>

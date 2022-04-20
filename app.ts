@@ -17,16 +17,40 @@ const publicPath =
 const app = opine();
 const router = Router();
 
+router.get("/bg/:n.jpg", async (req, res) => {
+	try {
+		const file = await Deno.readFile(
+			path.resolve(__dirname, "bg", "complete-" + req.params.n + ".jpg"),
+		);
+		res.setHeader("Content-Type", "image/jpeg").send(file);
+	} catch (error) {
+		res.setStatus(404).send({ error: "Background not found" });
+	}
+});
+
+const maxImages = 8;
+
 router.get("/", async (req, res) => {
-	const backgroundDataUri =
-		"data:image/jpeg;base64," +
-		Base64.fromUint8Array(
-			await Deno.readFile(path.resolve(__dirname, "complete-7.jpg")),
-		).toString();
+	const lastBackgroundMatches = (req.headers.get("Cookie") ?? "").match(
+		/lastbg=([0-9]+)(?:;|$)/,
+	);
+
+	let backgroundIndex = 0;
+
+	if (lastBackgroundMatches == null) {
+		backgroundIndex = Math.floor(Math.random() * maxImages) + 1;
+	} else {
+		backgroundIndex = parseInt(lastBackgroundMatches[1]) + 1;
+		if (backgroundIndex <= 0 || backgroundIndex > maxImages) {
+			backgroundIndex = 1;
+		}
+	}
+
+	const backgroundUrl = "/u/bg/" + backgroundIndex + ".jpg";
 
 	let page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
 
-	res.send(page.replace(/\[backgroundDataUri\]/g, backgroundDataUri));
+	res.send(page.replace(/\[backgroundUrl\]/g, backgroundUrl));
 });
 
 const base62 =

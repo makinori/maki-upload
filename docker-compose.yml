@@ -19,7 +19,7 @@ services:
             - traefik.http.routers.maki-upload.entrypoints=websecure
             - traefik.http.routers.maki-upload.service=maki-upload
             - traefik.http.routers.maki-upload.priority=99999
-            - traefik.http.routers.maki-upload.tls=true
+            - traefik.http.routers.maki-upload.tls.certResolver=le
             - traefik.http.services.maki-upload.loadbalancer.server.port=8080
             - traefik.docker.network=traefik
         networks:

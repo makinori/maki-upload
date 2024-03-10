@@ -1,8 +1,7 @@
 version: "3.8"
 networks:
     traefik:
-        external:
-            name: traefik
+        external: true
 services:
     maki-upload:
         build: .
@@ -15,7 +14,7 @@ services:
             - PORT=8080
         labels:
             - traefik.enable=true
-            - traefik.http.routers.maki-upload.rule=Host("maki.cafe") && PathPrefix("/u")
+            - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io")) && PathPrefix("/u")
             - traefik.http.routers.maki-upload.entrypoints=websecure
             - traefik.http.routers.maki-upload.service=maki-upload
             - traefik.http.routers.maki-upload.priority=99999

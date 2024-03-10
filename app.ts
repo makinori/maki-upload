@@ -102,7 +102,7 @@ router.post("/api/upload", async (req, res) => {
 
 		await Deno.writeFile(path.resolve(publicPath, filename), content);
 
-		out.push("https://maki.cafe/u/" + filename);
+		out.push("https://makidoll.io/u/" + filename);
 	}
 
 	res.send(out);

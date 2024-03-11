@@ -1,11 +1,7 @@
-import * as path from "https://deno.land/std@0.134.0/path/mod.ts";
-import {
-	getCookie,
-	setCookie,
-} from "https://deno.land/x/hono@v3.10.0/helper/cookie/index.ts";
-import { serveStatic } from "https://deno.land/x/hono@v3.10.0/middleware.ts";
-import { Hono } from "https://deno.land/x/hono@v3.10.0/mod.ts";
-import { getMimeType } from "https://deno.land/x/hono@v3.10.0/utils/mime.ts";
+import * as path from "path";
+import { getCookie, setCookie } from "hono/cookie";
+import { Hono } from "hono";
+import { getMimeType } from "hono/mime";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 

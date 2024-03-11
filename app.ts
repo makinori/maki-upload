@@ -1,56 +1,69 @@
 import * as path from "https://deno.land/std@0.134.0/path/mod.ts";
 import {
-	opine,
-	Router,
-	serveStatic,
-} from "https://deno.land/x/opine@2.1.5/mod.ts";
-import { MultipartReader } from "https://deno.land/std@0.134.0/mime/mod.ts";
-import { Base64 } from "https://deno.land/x/bb64@1.1.0/mod.ts";
+	getCookie,
+	setCookie,
+} from "https://deno.land/x/hono@v3.10.0/helper/cookie/index.ts";
+import { serveStatic } from "https://deno.land/x/hono@v3.10.0/middleware.ts";
+import { Hono } from "https://deno.land/x/hono@v3.10.0/mod.ts";
+import { getMimeType } from "https://deno.land/x/hono@v3.10.0/utils/mime.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
 const port = parseInt(Deno.env.get("PORT") ?? "8080");
 const token = Deno.env.get("TOKEN") ?? "cuteshoes";
+
 const publicPath =
 	Deno.env.get("PUBLIC_PATH") ?? path.resolve(__dirname, "public");
 
-const app = opine();
-const router = Router();
+let url = Deno.env.get("URL") ?? "http://127.0.0.1:" + port + "/u/";
+if (!url.endsWith("/")) url += "/";
 
-router.get("/bg/:n.jpg", async (req, res) => {
+await Deno.mkdir(publicPath, { recursive: true });
+
+const router = new Hono();
+
+router.get("/bg/:n{[0-9]+\\.jpg$}", async c => {
 	try {
+		const { n } = c.req.param();
 		const file = await Deno.readFile(
-			path.resolve(__dirname, "bg", "complete-" + req.params.n + ".jpg"),
+			path.resolve(
+				__dirname,
+				"bg",
+				"complete-" + n.replace(/\.jpg$/, "") + ".jpg",
+			),
 		);
-		res.setHeader("Content-Type", "image/jpeg").send(file);
+		c.header("Content-Type", "image/jpeg");
+		return c.body(file);
 	} catch (error) {
-		res.setStatus(404).send({ error: "Background not found" });
+		console.error(error);
+		c.status(404);
+		return c.json({ error: "Background not found" });
 	}
 });
 
 const maxImages = 8;
 
-router.get("/", async (req, res) => {
-	const lastBackgroundMatches = (req.headers.get("Cookie") ?? "").match(
-		/lastbg=([0-9]+)(?:;|$)/,
-	);
+router.get("/", async c => {
+	const lastBgCookie = getCookie(c, "lastbg");
 
-	let backgroundIndex = 0;
+	let bgIndex = 0;
 
-	if (lastBackgroundMatches == null) {
-		backgroundIndex = Math.floor(Math.random() * maxImages) + 1;
+	if (lastBgCookie == null) {
+		bgIndex = Math.floor(Math.random() * maxImages) + 1;
 	} else {
-		backgroundIndex = parseInt(lastBackgroundMatches[1]) + 1;
-		if (backgroundIndex <= 0 || backgroundIndex > maxImages) {
-			backgroundIndex = 1;
+		bgIndex = parseInt(lastBgCookie) + 1;
+		if (bgIndex <= 0 || bgIndex > maxImages) {
+			bgIndex = 1;
 		}
 	}
 
-	const backgroundUrl = "/u/bg/" + backgroundIndex + ".jpg";
+	setCookie(c, "lastbg", String(bgIndex));
+
+	const backgroundUrl = "/u/bg/" + bgIndex + ".jpg";
 
 	let page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
 
-	res.send(page.replace(/\[backgroundUrl\]/g, backgroundUrl));
+	return c.html(page.replace(/\[backgroundUrl\]/g, backgroundUrl));
 });
 
 const base62 =
@@ -62,59 +75,85 @@ const getName = (length: number) =>
 		.map(() => base62[Math.floor(Math.random() * base62.length)])
 		.join("");
 
-router.post("/api/upload", async (req, res) => {
-	const boundaryMatches = (req.headers.get("Content-Type") ?? "").match(
-		/boundary=([^]+?)(?:$|;)/i,
-	);
+const isFile = (any: any) =>
+	any != null &&
+	typeof any == "object" &&
+	{}.toString.call(any) == "[object File]";
 
-	if (boundaryMatches == null)
-		return res
-			.setStatus(400)
-			.send({ error: "No boundary sent with multipart" });
+router.post("/api/upload", async c => {
+	const body = await c.req.parseBody();
 
-	const boundary = boundaryMatches[1];
-	const reader = new MultipartReader(req.body, boundary);
-	const form = await reader.readForm();
-
-	if (form.values("token")?.[0] != token) {
-		return res.setStatus(400).send({ error: "Invalid token" });
+	if (body.token != token) {
+		c.status(400);
+		return c.json({ error: "Invalid token" });
 	}
 
-	const files = form.files("files");
-	if (files == null) {
-		return res.setStatus(400).send({ error: "No files sent" });
+	let files: File[] = [];
+
+	for (const key of ["files", "files[]"]) {
+		const value: any = body[key];
+		if (value == null) continue;
+
+		if (Array.isArray(body[key])) {
+			for (const file of value) {
+				if (isFile(file)) files.push(file);
+			}
+		} else {
+			if (isFile(value)) files.push(value);
+		}
 	}
 
 	let out = [];
 
 	for (const file of files) {
-		const ext = file.filename.split(".").pop();
-		const content = file.content ?? new Uint8Array();
-
-		// const filename =
-		// 	base(base62).encode(
-		// 		new Uint8Array(new Md5().update(content).digest()),
-		// 	) +
-		// 	"." +
-		// 	ext;
+		const ext = file.name.split(".").pop();
+		const content = await file.arrayBuffer();
 
 		const filename = getName(6) + "." + ext;
 
-		await Deno.writeFile(path.resolve(publicPath, filename), content);
+		await Deno.writeFile(
+			path.resolve(publicPath, filename),
+			new Uint8Array(content),
+		);
 
-		out.push("https://makidoll.io/u/" + filename);
+		out.push(url + filename);
 	}
 
-	res.send(out);
+	return c.json(out);
 });
 
-app.use("/u/", router);
-app.use("/u/", serveStatic(publicPath));
+router.get(":filename", async c => {
+	const { filename } = c.req.param();
 
-app.get("*", (req, res) => {
-	res.redirect("/u/");
+	const filePath = path.resolve(publicPath, filename);
+
+	try {
+		const file = await Deno.open(filePath);
+
+		const mimeType = getMimeType(filePath);
+		if (mimeType) {
+			c.header("Content-Type", mimeType);
+		}
+
+		return c.body(file.readable);
+	} catch (error) {
+		console.error(error);
+		c.status(404);
+		return c.json({ error: "File not found" });
+	}
 });
 
-app.listen(port, () =>
-	console.log("Server running on http://127.0.0.1:" + port),
-);
+const app = new Hono();
+
+app.route("/u/", router);
+
+app.get("/favicon.ico", c => {
+	c.status(404);
+	return c.body(null);
+});
+
+app.get("*", c => {
+	return c.redirect("/u/");
+});
+
+Deno.serve({ port }, app.fetch);

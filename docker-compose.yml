@@ -9,9 +9,10 @@ services:
         volumes:
             - ./public:/public
         environment:
-            - PUBLIC_PATH=/public
-            - TOKEN=cuteshoes
-            - PORT=8080
+            PUBLIC_PATH: /public
+            TOKEN: cuteshoes
+            PORT: 8080
+            URL: https://makidoll.io/u/
         labels:
             - traefik.enable=true
             - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io")) && PathPrefix("/u")

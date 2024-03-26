@@ -3,6 +3,7 @@
 		"hono": "https://deno.land/x/hono@v4.0.10/mod.ts",
 		"hono/cookie": "https://deno.land/x/hono@v4.0.10/helper/cookie/index.ts",
 		"hono/mime": "https://deno.land/x/hono@v4.0.10/utils/mime.ts",
-		"path": "https://deno.land/std@0.214.0/path/mod.ts"
+		"path": "https://deno.land/std@0.214.0/path/mod.ts",
+		"crc32": "https://deno.land/x/crc32@v0.2.2/mod.ts"
 	}
 }

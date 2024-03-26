@@ -1,7 +1,9 @@
-import * as path from "path";
-import { getCookie, setCookie } from "hono/cookie";
+import { crc32, hexToUint8Array } from "crc32";
 import { Hono } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
 import { getMimeType } from "hono/mime";
+import * as path from "path";
+import { base } from "./base-x.js";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
@@ -62,14 +64,19 @@ router.get("/", async c => {
 	return c.html(page.replace(/\[backgroundUrl\]/g, backgroundUrl));
 });
 
-const base62 =
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+// length was usually 6
+// const getName = (length: number) =>
+// 	new Array(length)
+// 		.fill(0)
+// 		.map(() => base62[Math.floor(Math.random() * base62.length)])
+// 		.join("");
 
-const getName = (length: number) =>
-	new Array(length)
-		.fill(0)
-		.map(() => base62[Math.floor(Math.random() * base62.length)])
-		.join("");
+const base62 = base(
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+);
+
+const getName = (content: Uint8Array) =>
+	base62.encode(hexToUint8Array(crc32(content)));
 
 const isFile = (any: any) =>
 	any != null &&
@@ -103,14 +110,11 @@ router.post("/api/upload", async c => {
 
 	for (const file of files) {
 		const ext = file.name.split(".").pop();
-		const content = await file.arrayBuffer();
+		const content = new Uint8Array(await file.arrayBuffer());
 
-		const filename = getName(6) + "." + ext;
+		const filename = getName(content) + "." + ext;
 
-		await Deno.writeFile(
-			path.resolve(publicPath, filename),
-			new Uint8Array(content),
-		);
+		await Deno.writeFile(path.resolve(publicPath, filename), content);
 
 		out.push(url + filename);
 	}

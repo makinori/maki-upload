@@ -162,6 +162,7 @@
     "https://deno.land/std@0.214.0/path/windows/separator.ts": "e51c5522140eff4f8402617c5c68a201fdfa3a1a8b28dc23587cff931b665e43",
     "https://deno.land/std@0.214.0/path/windows/to_file_url.ts": "1cd63fd35ec8d1370feaa4752eccc4cc05ea5362a878be8dc7db733650995484",
     "https://deno.land/std@0.214.0/path/windows/to_namespaced_path.ts": "4ffa4fb6fae321448d5fe810b3ca741d84df4d7897e61ee29be961a6aac89a4c",
+    "https://deno.land/x/crc32@v0.2.2/mod.ts": "253e0943464b6ffca5194fb9b3b87fdbd0ee3c2b071fb6021cdec654bc33e486",
     "https://deno.land/x/hono@v3.10.0/client/client.ts": "ff340f58041203879972dd368b011ed130c66914f789826610869a90603406bf",
     "https://deno.land/x/hono@v3.10.0/client/index.ts": "3ff4cf246f3543f827a85a2c84d66a025ac350ee927613629bda47e854bfb7ba",
     "https://deno.land/x/hono@v3.10.0/client/types.ts": "52c66cbe74540e1811259a48c30622ac915666196eb978092d166435cbc15213",

@@ -61,7 +61,20 @@ router.get("/", async c => {
 
 	let page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
 
-	return c.html(page.replace(/\[backgroundUrl\]/g, backgroundUrl));
+	const bashScript = await Deno.readTextFile(
+		path.resolve(__dirname, "./config/maki-upload.sh"),
+	);
+
+	const actionsForNautilusConfig = await Deno.readTextFile(
+		path.resolve(__dirname, "./config/actions-for-nautilus-config.json"),
+	);
+
+	return c.html(
+		page
+			.replace(/\[backgroundUrl\]/g, backgroundUrl)
+			.replace(/\[bashScript\]/g, bashScript)
+			.replace(/\[actionsForNautilusConfig\]/g, actionsForNautilusConfig),
+	);
 });
 
 // length was usually 6

@@ -58,6 +58,18 @@
 				font-weight: 900;
 			}
 
+			h2 {
+				font-size: 24px;
+				font-weight: 800;
+			}
+
+			#page-scripts {
+				background-color: rgba(20, 20, 20, 0.7);
+				border-radius: 16px;
+				padding: 16px;
+				width: 500px;
+			}
+
 			input,
 			textarea,
 			button {
@@ -76,14 +88,15 @@
 			}
 
 			textarea {
-				overflow: hidden;
+				/* overflow: hidden; */
 				text-align: left;
 				resize: none;
 				padding: 8px 12px;
-				background-color: #222;
+				width: calc(100% - 24px);
+				/* background-color: #222; */
 				font-family: "JetBrains Mono", monospace;
-				width: 430px;
-				font-size: 12px;
+				font-size: 10px;
+				tab-size: 4;
 			}
 
 			input[type="file"] {
@@ -139,20 +152,19 @@
 				</form>
 			</div>
 			<div id="page-scripts" style="display: none">
-				<h2>Bash Script</h2>
-				<textarea spellcheck="false" rows="8">
-filename=$1
-if [[ -z "$filename" ]]; then
-	cd ~/Pictures/Screenshots
-	filename=$(ls -t ~/Pictures/Screenshots | head -n1)
-fi
-echo "Uploading: $filename"
-curl -s -F token="" -F files="@$filename" \
-	https://makidoll.io/u/api/upload | jq -r .[0]</textarea
+				<h2>Bash Script w/ Nautilus</h2>
+				<p style="margin-top: 8px">~/maki-upload.sh</p>
+				<textarea readonly spellcheck="false" rows="8">
+[bashScript]</textarea
 				>
-				<br />
-				<h2>ShareX</h2>
-				<textarea spellcheck="false" rows="6">
+				<p style="margin-top: 16px">
+					~/.local/share/actions-for-nautilus/config.json
+				</p>
+				<textarea readonly spellcheck="false" rows="8">
+[actionsForNautilusConfig]</textarea
+				>
+				<h2 style="margin-top: 16px">ShareX</h2>
+				<textarea readonly spellcheck="false" rows="4">
 {"Name":"makidoll.io/u","Arguments":{"token":""},"DestinationType":"ImageUploader,TextUploader,FileUploader","RequestType":"POST","RequestURL":"https://makidoll.io/u/api/upload","FileFormName":"files","ResponseType":"Text","URL":"$json:[0]$"}</textarea
 				>
 			</div>

@@ -143,7 +143,13 @@ router.get(":filename", async c => {
 	try {
 		const file = await Deno.open(filePath);
 
-		const mimeType = getMimeType(filePath);
+		let mimeType = "";
+		if (filePath.endsWith(".ts")) {
+			mimeType = "text/plain";
+		} else {
+			mimeType = getMimeType(filePath);
+		}
+		
 		if (mimeType) {
 			c.header("Content-Type", mimeType);
 		}

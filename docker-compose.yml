@@ -25,6 +25,7 @@ services:
     api:
         build: .
         restart: always
+        user: 1000:1000
         volumes:
             - ./public:/public
         environment:

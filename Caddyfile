@@ -19,4 +19,6 @@
 		root * /public
 		file_server
 	}
+
+	# need error message if file doesnt exist
 }

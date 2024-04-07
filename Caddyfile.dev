@@ -1,0 +1,22 @@
+:8080 {
+	handle /u {
+		reverse_proxy 127.0.0.1:8081
+	}
+
+	handle /u/ {
+		reverse_proxy 127.0.0.1:8081
+	}
+
+	handle /u/bg/* {
+		reverse_proxy 127.0.0.1:8081
+	}
+
+	handle /u/api/upload {
+		reverse_proxy 127.0.0.1:8081
+	}
+
+	handle_path /u/* {
+		root * public
+		file_server
+	}
+}

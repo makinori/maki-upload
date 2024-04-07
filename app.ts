@@ -7,7 +7,7 @@ import { base } from "./base-x.js";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
-const port = parseInt(Deno.env.get("PORT") ?? "8080");
+const port = parseInt(Deno.env.get("PORT") ?? "8081");
 const token = Deno.env.get("TOKEN") ?? "cuteshoes";
 
 const publicPath =
@@ -135,6 +135,7 @@ router.post("/api/upload", async c => {
 	return c.json(out);
 });
 
+/*
 router.get(":filename", async c => {
 	const { filename } = c.req.param();
 
@@ -161,6 +162,7 @@ router.get(":filename", async c => {
 		return c.json({ error: "File not found" });
 	}
 });
+*/
 
 const app = new Hono();
 

@@ -1,13 +1,13 @@
 import { crc32, hexToUint8Array } from "crc32";
+import { getFreePort } from "free_port";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { getMimeType } from "hono/mime";
 import * as path from "path";
 import { base } from "./base-x.js";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
-const port = parseInt(Deno.env.get("PORT") ?? "8081");
+const port = parseInt(Deno.env.get("PORT") ?? "8080");
 const token = Deno.env.get("TOKEN") ?? "cuteshoes";
 
 const publicPath =
@@ -177,4 +177,45 @@ app.get("*", c => {
 	return c.redirect("/u/");
 });
 
-Deno.serve({ port }, app.fetch);
+const apiPort = await getFreePort(50000);
+
+Deno.serve({ port: apiPort }, app.fetch);
+
+// start caddy server
+
+const apiPaths = ["/u", "/u/", "/u/bg/*", "/u/api/upload"];
+
+const caddyConfig = `
+:${port} {
+	${apiPaths
+		.map(
+			path => `handle ${path} {
+				reverse_proxy 127.0.0.1:${apiPort}
+			}`,
+		)
+		.join("\n")}
+
+	handle_path /u/* {
+		root * "${publicPath}"
+		file_server
+	}
+
+	# need error message if file doesnt exist
+}
+`.trim();
+
+console.log(caddyConfig);
+
+console.log(`Starting Caddy server on http://localhost:${port}/u/\n`);
+
+const command = new Deno.Command("caddy", {
+	args: ["run", "--adapter", "caddyfile", "--config", "-"],
+	stdin: "piped",
+	stdout: "inherit",
+});
+
+const child = command.spawn();
+
+const childStdin = child.stdin.getWriter();
+await childStdin.write(new TextEncoder().encode(caddyConfig));
+await childStdin.close();

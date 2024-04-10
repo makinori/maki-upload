@@ -3,13 +3,17 @@ networks:
     traefik:
         external: true
 services:
-    caddy:
-        image: caddy:latest
+    maki-upload:
+        build: .
         restart: always
-        command: caddy run -c /Caddyfile
+        user: 1000:1000
         volumes:
-            - ./public:/public:ro
-            - ./Caddyfile:/Caddyfile:ro
+            - ./public:/public
+        environment:
+            PUBLIC_PATH: /public
+            TOKEN: cuteshoes
+            PORT: 8080
+            URL: https://makidoll.io/u/
         labels:
             - traefik.enable=true
             - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io")) && PathPrefix("/u")
@@ -22,14 +26,3 @@ services:
         networks:
             - default
             - traefik
-    api:
-        build: .
-        restart: always
-        user: 1000:1000
-        volumes:
-            - ./public:/public
-        environment:
-            PUBLIC_PATH: /public
-            TOKEN: cuteshoes
-            # PORT: 8080
-            URL: https://makidoll.io/u/

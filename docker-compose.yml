@@ -6,7 +6,7 @@ services:
     maki-upload:
         build: .
         restart: always
-        user: 1000:1000
+        # user: 1000:1000
         volumes:
             - ./public:/public
         environment:

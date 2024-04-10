@@ -204,7 +204,7 @@ const caddyConfig = `
 }
 `.trim();
 
-console.log(caddyConfig);
+// console.log(caddyConfig);
 
 console.log(`Starting Caddy server on http://localhost:${port}/u/\n`);
 

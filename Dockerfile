@@ -1,15 +1,16 @@
 FROM alpine:latest
 
 RUN \
-apk add --no-cache --update deno caddy && \
-addgroup -S maki-upload && adduser -S maki-upload -G maki-upload && \
-mkdir /app && chown -R maki-upload:maki-upload /app
+apk add --no-cache --update deno caddy # && \
+#addgroup -S maki-upload && adduser -S maki-upload -G maki-upload && \
+#mkdir /app && chown -R maki-upload:maki-upload /app
 
-USER maki-upload
+# USER maki-upload
 
 WORKDIR /app
 
-COPY --chown=maki-upload:maki-upload . .
+# COPY --chown=maki-upload:maki-upload . .
+COPY . .
 
 RUN deno cache app.ts
 

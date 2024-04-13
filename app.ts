@@ -2,6 +2,7 @@ import { crc32, hexToUint8Array } from "crc32";
 import { getFreePort } from "free_port";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
+import { getMimeType } from "hono/mime";
 import * as path from "path";
 import { base } from "./base-x.js";
 
@@ -13,24 +14,35 @@ const token = Deno.env.get("TOKEN") ?? "cuteshoes";
 const publicPath =
 	Deno.env.get("PUBLIC_PATH") ?? path.resolve(__dirname, "public");
 
-let url = Deno.env.get("URL") ?? "http://127.0.0.1:" + port + "/u/";
-if (!url.endsWith("/")) url += "/";
-
 await Deno.mkdir(publicPath, { recursive: true });
 
 const router = new Hono();
 
-router.get("/bg/:n{[0-9]+\\.jpg$}", async c => {
+const bgNames = [
+	"boat.gif",
+	"busy_train.gif",
+	"calm_train.gif",
+	"deer.gif",
+	"fish_pond.gif",
+	"fish_shop.gif",
+	"girls.gif",
+	"girls_waiting.gif",
+	"home.gif",
+	"pets.gif",
+	"rainbow_dog.gif",
+	"river.gif",
+	"sakura.gif",
+	"shore.gif",
+	"take_away.gif",
+];
+
+router.get("/bg/:filename", async c => {
 	try {
-		const { n } = c.req.param();
+		const { filename } = c.req.param();
 		const file = await Deno.readFile(
-			path.resolve(
-				__dirname,
-				"bg",
-				"complete-" + n.replace(/\.jpg$/, "") + ".jpg",
-			),
+			path.resolve(__dirname, "bg-gifs", filename),
 		);
-		c.header("Content-Type", "image/jpeg");
+		c.header("Content-Type", getMimeType(filename));
 		return c.body(file);
 	} catch (error) {
 		console.error(error);
@@ -39,41 +51,75 @@ router.get("/bg/:n{[0-9]+\\.jpg$}", async c => {
 	}
 });
 
-const maxImages = 8;
+function renderText(text: string, variables: { [key: string]: string }) {
+	for (const [key, value] of Object.entries(variables)) {
+		text = text.replaceAll(`[${key}]`, value);
+	}
+	return text;
+}
 
-router.get("/", async c => {
-	const lastBgCookie = getCookie(c, "lastbg");
+async function getConfig(
+	name: string,
+	variables: { [key: string]: string } = {},
+) {
+	return renderText(
+		await Deno.readTextFile(path.resolve(__dirname, "./config/", name)),
+		variables,
+	);
+}
+
+/*
+function getNextBg(lastBg: string | undefined): [string, number] {
+	const maxImages = 8;
 
 	let bgIndex = 0;
 
-	if (lastBgCookie == null) {
+	if (lastBg == null) {
 		bgIndex = Math.floor(Math.random() * maxImages) + 1;
 	} else {
-		bgIndex = parseInt(lastBgCookie) + 1;
-		if (bgIndex <= 0 || bgIndex > maxImages) {
-			bgIndex = 1;
-		}
+		bgIndex = parseInt(lastBg) + 1;
+		if (bgIndex <= 0 || bgIndex > maxImages) bgIndex = 1;
 	}
 
+	return ["/u/bg/complete-" + bgIndex + ".jpg", bgIndex];
+}
+*/
+
+function getNextBg(lastBg: string | undefined): [string, number] {
+	let bgIndex = 0;
+
+	if (lastBg == null) {
+		bgIndex = Math.floor(Math.random() * bgNames.length);
+	} else {
+		bgIndex = parseInt(lastBg) + 1;
+		if (bgIndex < 0 || bgIndex >= bgNames.length) bgIndex = 1;
+	}
+
+	return ["/u/bg/" + bgNames[bgIndex], bgIndex];
+}
+
+router.get("/", async c => {
+	const [backgroundUrl, bgIndex] = getNextBg(getCookie(c, "lastbg"));
 	setCookie(c, "lastbg", String(bgIndex));
 
-	const backgroundUrl = "/u/bg/" + bgIndex + ".jpg";
+	const page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
 
-	let page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
-
-	const bashScript = await Deno.readTextFile(
-		path.resolve(__dirname, "./config/maki-upload.sh"),
-	);
-
-	const actionsForNautilusConfig = await Deno.readTextFile(
-		path.resolve(__dirname, "./config/actions-for-nautilus-config.json"),
-	);
+	const vars = {
+		siteUrl: new URL(c.req.url).origin + "/u",
+		siteDomain: new URL(c.req.url).hostname,
+	};
 
 	return c.html(
-		page
-			.replace(/\[backgroundUrl\]/g, backgroundUrl)
-			.replace(/\[bashScript\]/g, bashScript)
-			.replace(/\[actionsForNautilusConfig\]/g, actionsForNautilusConfig),
+		renderText(page, {
+			backgroundUrl,
+			bashScript: await getConfig("maki-upload.sh", vars),
+			nautilusConfig: await getConfig(
+				"actions-for-nautilus-config.json",
+				vars,
+			),
+			dolphinConfig: await getConfig("maki-upload.desktop", vars),
+			sharexConfig: await getConfig("sharex.json", vars),
+		}),
 	);
 });
 
@@ -129,7 +175,9 @@ router.post("/api/upload", async c => {
 
 		await Deno.writeFile(path.resolve(publicPath, filename), content);
 
-		out.push(url + filename);
+		const siteUrl = new URL(c.req.url).origin;
+
+		out.push(siteUrl + "/u/" + filename);
 	}
 
 	return c.json(out);

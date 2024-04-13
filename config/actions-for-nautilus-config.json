@@ -5,7 +5,7 @@
 			"type": "command",
 			"label": "Maki Upload",
 			"use_shell": true,
-			"command_line": "COPY_TO_CLIPBOARD=1 ~/maki-upload.sh %f",
+			"command_line": "SHOW_DIALOG=1 ~/maki-upload.sh %f",
 			"min_items": 1,
 			"max_items": 1,
 			"filetypes": ["file"]

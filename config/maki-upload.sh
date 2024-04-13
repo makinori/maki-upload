@@ -1,3 +1,6 @@
+token=""
+api_url="[siteUrl]/api/upload"
+
 filename=$1
 if [[ -z "$filename" ]]; then
 	cd ~/Pictures/Screenshots
@@ -6,29 +9,15 @@ fi
 
 echo "Uploading: $filename"
 
-url=$(curl -s -F token="" -F files="@$filename" \
-https://makidoll.io/u/api/upload | jq -r .[0])
+url=$(curl -s -F token="$token" -F files="@$filename" $api_url | jq -r .[0])
 
-echo $url
+echo $url | xclip -selection clipboard
+echo "Copied: $url"
 
-if env | grep -q ^COPY_TO_CLIPBOARD=; then
-	was_disturb=$(dconf read "/org/gnome/desktop/notifications/show-banners")
-	if [[ $was_disturb == false ]]; then
-		dconf write "/org/gnome/desktop/notifications/show-banners" true
-	fi
-
+if env | grep -q ^SHOW_DIALOG=; then
 	if [[ -z "$url" ]]; then
-		notify-send -i dialog-information -a "Maki Upload" \
-		"Upload failed" "No idea why"
+		kdialog --msgbox "Upload failed"
 	else
-		# xdg-open $url
-		echo $url | xclip -selection clipboard
-		notify-send -i dialog-information -a "Maki Upload" \
-		"Upload successful, copied to clipboard" "$url"
-	fi
-
-	if [[ $was_disturb == false ]]; then
-		sleep 0.5
-		dconf write "/org/gnome/desktop/notifications/show-banners" false
+		kdialog --msgbox "Copied: $url"
 	fi
 fi

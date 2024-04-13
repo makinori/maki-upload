@@ -13,10 +13,9 @@ services:
             PUBLIC_PATH: /public
             TOKEN: cuteshoes
             PORT: 8080
-            URL: https://makidoll.io/u/
         labels:
             - traefik.enable=true
-            - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io")) && PathPrefix("/u")
+            - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io") || Host("hotmilk.space")) && PathPrefix("/u")
             - traefik.http.routers.maki-upload.entrypoints=websecure
             - traefik.http.routers.maki-upload.service=maki-upload
             - traefik.http.routers.maki-upload.priority=99999

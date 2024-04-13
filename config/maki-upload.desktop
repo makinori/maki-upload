@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Service
+Icon=cloud-upload
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+MimeType=all/allfiles;
+Actions=makiUpload;
+Encoding=UTF-8
+
+[Desktop Action makiUpload]
+Name=Maki Upload
+Icon=cloud-upload
+Exec=SHOW_DIALOG=1 ~/maki-upload.sh %f

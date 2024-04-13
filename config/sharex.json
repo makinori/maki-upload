@@ -1,0 +1,10 @@
+{
+	"Name": "[siteDomain]/u",
+	"Arguments": { "token": "" },
+	"DestinationType": "ImageUploader,TextUploader,FileUploader",
+	"RequestType": "POST",
+	"RequestURL": "[siteUrl]/api/upload",
+	"FileFormName": "files",
+	"ResponseType": "Text",
+	"URL": "$json:[0]$"
+}

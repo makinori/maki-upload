@@ -105,7 +105,6 @@ router.get("/", async c => {
 	const page = await Deno.readTextFile(path.resolve(__dirname, "page.html"));
 
 	const vars = {
-		siteUrl: new URL(c.req.url).origin + "/u",
 		siteDomain: new URL(c.req.url).hostname,
 	};
 
@@ -167,6 +166,8 @@ router.post("/api/upload", async c => {
 
 	let out = [];
 
+	const siteUrl = new URL(c.req.url).origin + "/u/";
+
 	for (const file of files) {
 		const ext = file.name.split(".").pop();
 		const content = new Uint8Array(await file.arrayBuffer());
@@ -175,9 +176,7 @@ router.post("/api/upload", async c => {
 
 		await Deno.writeFile(path.resolve(publicPath, filename), content);
 
-		const siteUrl = new URL(c.req.url).origin;
-
-		out.push(siteUrl + "/u/" + filename);
+		out.push(siteUrl + filename);
 	}
 
 	return c.json(out);

@@ -3,7 +3,7 @@
 	"Arguments": { "token": "" },
 	"DestinationType": "ImageUploader,TextUploader,FileUploader",
 	"RequestType": "POST",
-	"RequestURL": "[siteUrl]/api/upload",
+	"RequestURL": "https://[siteDomain]/u/api/upload",
 	"FileFormName": "files",
 	"ResponseType": "Text",
 	"URL": "$json:[0]$"

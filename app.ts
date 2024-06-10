@@ -166,7 +166,9 @@ router.post("/api/upload", async c => {
 
 	let out = [];
 
-	const siteUrl = new URL(c.req.url).origin + "/u/";
+	// probably dun do this in dev
+	const siteUrl =
+		new URL(c.req.url).origin.replace(/^http:\/\//i, "https://") + "/u/";
 
 	for (const file of files) {
 		const ext = file.name.split(".").pop();

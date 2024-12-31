@@ -8,10 +8,11 @@ services:
         # user: 1000:1000
         volumes:
             - ./public:/public
-        environment:
-            PUBLIC_PATH: /public
-            TOKENS: token_a,token_b
-            PORT: 8080
+        # environment:
+        #     PORT: 8080
+        #     PUBLIC_PATH: /public
+        #     TOKENS: token_a,token_b
+        env_file: .env
         labels:
             - traefik.enable=true
             - traefik.http.routers.maki-upload.rule=(Host("maki.cafe") || Host("makidoll.io") || Host("hotmilk.space")) && PathPrefix("/u")

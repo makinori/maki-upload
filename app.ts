@@ -9,7 +9,7 @@ import { base } from "./base-x.js";
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
 const port = parseInt(Deno.env.get("PORT") ?? "8080");
-const token = Deno.env.get("TOKEN") ?? "cuteshoes";
+const tokens = (Deno.env.get("TOKENS") ?? "token_a,token_b").split(",");
 
 const publicPath =
 	Deno.env.get("PUBLIC_PATH") ?? path.resolve(__dirname, "public");
@@ -144,7 +144,7 @@ const isFile = (any: any) =>
 router.post("/api/upload", async c => {
 	const body = await c.req.parseBody();
 
-	if (body.token != token) {
+	if (!tokens.includes(body.token as string)) {
 		c.status(400);
 		return c.json({ error: "Invalid token" });
 	}

@@ -1,10 +1,15 @@
 {
 	"imports": {
-		"hono": "https://deno.land/x/hono@v4.2.3/mod.ts",
-		"hono/cookie": "https://deno.land/x/hono@v4.2.3/helper/cookie/index.ts",
-		"hono/mime": "https://deno.land/x/hono@v4.2.3/utils/mime.ts",
+		"hono": "jsr:@hono/hono@^4.6.17",
 		"path": "https://deno.land/std@0.221.0/path/mod.ts",
 		"crc32": "https://deno.land/x/crc32@v0.2.2/mod.ts",
 		"free_port": "https://deno.land/x/free_port@v1.2.0/mod.ts"
+	},
+	"tasks": {
+		"start": "deno run -A app.ts"
+	},
+	"compilerOptions": {
+		"jsx": "precompile",
+		"jsxImportSource": "hono/jsx"
 	}
 }

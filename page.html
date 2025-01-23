@@ -2,16 +2,31 @@
 <html>
 	<head>
 		<title>Maki Upload</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
-			rel="stylesheet"
-		/>
 		<style type="text/css">
+			@font-face {
+				font-family: "SN Pro";
+				font-style: normal;
+				font-display: swap;
+				src: url(/u/fonts/SNPro-VariableRegular.woff2) format("woff2");
+			}
+
+			@font-face {
+				font-family: "SN Pro";
+				font-style: italic;
+				font-display: swap;
+				src: url(/u/fonts/SNPro-VariableItalic.woff2) format("woff2");
+			}
+
+			@font-face {
+				font-family: "Cascadia Mono";
+				font-style: italic;
+				font-display: swap;
+				src: url(/u/fonts/CascadiaMono.woff2) format("woff2");
+			}
+
 			body {
 				margin: 0;
-				font-family: "Nunito", sans-serif;
+				font-family: "SN Pro", sans-serif;
 				font-weight: 700;
 				background-size: cover;
 				background-position: 50% 0;
@@ -52,6 +67,7 @@
 				margin-bottom: 4px;
 				color: #fff;
 				font-weight: 900;
+				letter-spacing: -1px;
 			}
 
 			h2 {
@@ -78,7 +94,7 @@
 				border-radius: 8px;
 				/* background-color: rgb(29, 31, 33); */
 				background-color: rgb(39, 41, 43);
-				font-family: "Nunito", sans-serif;
+				font-family: "SN Pro", sans-serif;
 				font-weight: 700;
 				font-size: 16px;
 				text-align: center;
@@ -92,7 +108,7 @@
 				padding: 8px 12px;
 				width: calc(100% - 24px);
 				/* background-color: #222; */
-				font-family: "JetBrains Mono", monospace;
+				font-family: "Cascadia Mono", monospace;
 				font-size: 10px;
 				tab-size: 4;
 			}
@@ -127,7 +143,7 @@
 			.links a {
 				color: #fff;
 				cursor: pointer;
-				font-weight: 800;
+				font-weight: 700;
 				color: #e91e63;
 			}
 
@@ -164,26 +180,26 @@
 			<div id="page-scripts" style="display: none">
 				<h2>Bash Script</h2>
 				<p style="margin-top: 8px">~/maki-upload.sh</p>
-				<textarea readonly spellcheck="false" rows="8">
+				<textarea readonly spellcheck="false" rows="9">
 [bashScript]</textarea
 				>
 
 				<p style="margin-top: 16px">
 					Nautilus: ~/.local/share/actions-for-nautilus/config.json
 				</p>
-				<textarea readonly spellcheck="false" rows="8">
+				<textarea readonly spellcheck="false" rows="9">
 [nautilusConfig]</textarea
 				>
 
 				<p style="margin-top: 16px">
 					Dolphin: ~/.local/share/kio/servicemenus/maki-upload.desktop
 				</p>
-				<textarea readonly spellcheck="false" rows="8">
+				<textarea readonly spellcheck="false" rows="9">
 [dolphinConfig]</textarea
 				>
 
 				<h2 style="margin-top: 16px">ShareX</h2>
-				<textarea readonly spellcheck="false" rows="8">
+				<textarea readonly spellcheck="false" rows="9">
 [sharexConfig]</textarea
 				>
 			</div>

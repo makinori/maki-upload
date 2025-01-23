@@ -2,7 +2,8 @@ import { crc32, hexToUint8Array } from "crc32";
 import { getFreePort } from "free_port";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { getMimeType } from "hono/mime";
+import { serveStatic } from "hono/deno";
+import { getMimeType } from "hono/utils/mime";
 import * as path from "path";
 import { base } from "./base-x.js";
 
@@ -17,6 +18,16 @@ const publicPath =
 await Deno.mkdir(publicPath, { recursive: true });
 
 const router = new Hono();
+
+router.use(
+	"/fonts/*",
+	serveStatic({
+		root: path.resolve(__dirname, "fonts"),
+		rewriteRequestPath: path => {
+			return path.replace(/^\/u\/fonts\//, "");
+		},
+	}),
+);
 
 const bgNames = [
 	"boat.gif",

@@ -1,10 +1,10 @@
-import { crc32, hexToUint8Array } from "crc32";
-import { getFreePort } from "free_port";
-import { Hono } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
-import { serveStatic } from "hono/deno";
-import { getMimeType } from "hono/utils/mime";
-import * as path from "path";
+import { crc32, hexToUint8Array } from "@deno-library/crc32";
+import { Hono } from "@hono/hono";
+import { getCookie, setCookie } from "@hono/hono/cookie";
+import { serveStatic } from "@hono/hono/deno";
+import { getMimeType } from "@hono/hono/utils/mime";
+import { getPort } from "@openjs/port-free";
+import * as path from "@std/path";
 import { base } from "./base-x.js";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
@@ -237,7 +237,7 @@ app.get("*", c => {
 	return c.redirect("/u/");
 });
 
-const apiPort = await getFreePort(50000);
+const apiPort = await getPort({ port: 50000 });
 
 Deno.serve({ port: apiPort }, app.fetch);
 

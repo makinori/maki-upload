@@ -19,15 +19,16 @@ await Deno.mkdir(publicPath, { recursive: true });
 
 const router = new Hono();
 
-router.use(
-	"/fonts/*",
-	serveStatic({
-		root: path.resolve(__dirname, "fonts"),
-		rewriteRequestPath: path => {
-			return path.replace(/^\/u\/fonts\//, "");
-		},
-	}),
-);
+// moved to caddy config
+// router.use(
+// 	"/fonts/*",
+// 	serveStatic({
+// 		root: path.resolve(__dirname, "fonts"),
+// 		rewriteRequestPath: path => {
+// 			return path.replace(/^\/u\/fonts\//, "");
+// 		},
+// 	}),
+// );
 
 const bgNames = [
 	"boat.gif",
@@ -257,6 +258,11 @@ const caddyConfig = `
 
 	handle_path /u/* {
 		root * "${publicPath}"
+		file_server
+	}
+
+	handle_path /u/fonts/* {
+		root * "${path.resolve(__dirname, "fonts")}"
 		file_server
 	}
 

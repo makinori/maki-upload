@@ -2,7 +2,7 @@
   "version": "4",
   "specifiers": {
     "jsr:@deno-library/crc32@^1.0.2": "1.0.2",
-    "jsr:@hono/hono@^4.6.17": "4.6.17",
+    "jsr:@hono/hono@^4.7.5": "4.7.5",
     "jsr:@openjs/port-free@1": "1.0.0",
     "jsr:@std/path@^1.0.8": "1.0.8"
   },
@@ -10,8 +10,8 @@
     "@deno-library/crc32@1.0.2": {
       "integrity": "d2061bfee30c87c97f285dfca0fdc4458e632dc072a33ecfc73ca5177a5a39a0"
     },
-    "@hono/hono@4.6.17": {
-      "integrity": "932fcc61d043b14a8b2cb65242716eb32da44e91f2ee117fd7390508669fea31"
+    "@hono/hono@4.7.5": {
+      "integrity": "36a7e1b3db8a58e5dc2bd36a76be53346f0966e04c24c635c4d6f58875575b0a"
     },
     "@openjs/port-free@1.0.0": {
       "integrity": "0b70adc419a37d6c15d049a369cbc2020795bf50118409dde077efcae9e8e2e4"
@@ -106,7 +106,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@deno-library/crc32@^1.0.2",
-      "jsr:@hono/hono@^4.6.17",
+      "jsr:@hono/hono@^4.7.5",
       "jsr:@openjs/port-free@1",
       "jsr:@std/path@^1.0.8"
     ]

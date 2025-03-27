@@ -25,7 +25,8 @@ import (
 var STATIC_CONTENT embed.FS
 
 const (
-	BACKGROUNDS_DIR = "bg-gifs"
+	BACKGROUNDS_DIR    = "bg-gifs"
+	MAX_UPLOAD_SIZE_GB = 1
 )
 
 var (
@@ -212,10 +213,10 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(gbToBytes(1))
+	err := r.ParseMultipartForm(gbToBytes(MAX_UPLOAD_SIZE_GB))
 	if err != nil {
 		log.Println(err)
-		writeJsonError(w, "failed to part multipart form", http.StatusBadRequest)
+		writeJsonError(w, "failed to parse multipart form", http.StatusBadRequest)
 		return
 	}
 

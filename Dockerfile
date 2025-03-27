@@ -9,7 +9,7 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o maki-upload
 
-FROM alpine:latest
+FROM scratch
 
 WORKDIR /app
 

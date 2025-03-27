@@ -1,17 +1,23 @@
-FROM alpine:latest
-
-RUN \
-apk add --no-cache --update deno caddy # && \
-#addgroup -S maki-upload && adduser -S maki-upload -G maki-upload && \
-#mkdir /app && chown -R maki-upload:maki-upload /app
-
-# USER maki-upload
+FROM golang:1.24.1 AS build
 
 WORKDIR /app
 
-# COPY --chown=maki-upload:maki-upload . .
-COPY . .
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN deno cache app.ts
+COPY *.go ./
 
-CMD [ "deno", "run", "-A", "app.ts" ]
+RUN CGO_ENABLED=0 GOOS=linux go build -o maki-upload
+
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=build /app/maki-upload /app/maki-upload
+
+COPY ./bg-gifs /app/bg-gifs
+COPY ./config /app/config
+COPY ./fonts /app/fonts
+COPY ./page.html /app/page.html
+
+ENTRYPOINT ["/app/maki-upload"]

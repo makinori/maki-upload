@@ -10,7 +10,7 @@ services:
             - ./public:/public
         # environment:
         #     PORT: 8080
-        #     PUBLIC_PATH: /public
+        #     PUBLIC_DIR: /public
         #     TOKENS: token_a,token_b
         env_file: .env
         labels:

@@ -16,6 +16,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/dustin/go-humanize"
 )
 
 const (
@@ -260,8 +262,9 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 		fileUrls = append(fileUrls, fileUrl)
 
 		log.Printf(
-			`"%s" uploaded "%s" with "%s"`,
-			getRequestIP(r), filename, token,
+			`%s (%s) uploaded: %s (%s)`,
+			getRequestIP(r), token,
+			filename, humanize.Bytes(uint64(buf.Len())),
 		)
 	}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/md5"
+	"embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -20,8 +21,11 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+//go:embed bg-gifs fonts config page.html
+var STATIC_CONTENT embed.FS
+
 const (
-	BACKGROUNDS_DIR = "./bg-gifs/"
+	BACKGROUNDS_DIR = "bg-gifs"
 )
 
 var (
@@ -35,8 +39,6 @@ var (
 	PUBLIC_DIR = getEnv("PUBLIC_DIR", "./public/")
 )
 
-// TODO: embed files
-
 func getEnv(key string, fallback string) string {
 	value, exists := os.LookupEnv(key)
 	if exists {
@@ -47,7 +49,8 @@ func getEnv(key string, fallback string) string {
 }
 
 func getBackgroundNames() []string {
-	entries, err := os.ReadDir(BACKGROUNDS_DIR)
+	entries, err := STATIC_CONTENT.ReadDir(BACKGROUNDS_DIR)
+
 	if err != nil {
 		return []string{}
 	}
@@ -88,8 +91,14 @@ func handleEtag(w http.ResponseWriter, r *http.Request, stat os.FileInfo) bool {
 
 func fileHandler(
 	w http.ResponseWriter, r *http.Request, rootPath string, hostDir string,
+	static bool,
 ) {
 	filename := strings.Replace(r.URL.Path, rootPath, "", 1)
+
+	if static {
+		http.ServeFileFS(w, r, STATIC_CONTENT, filepath.Join(hostDir, filename))
+		return
+	}
 
 	file, err := os.Open(filepath.Join(hostDir, filename))
 	if err != nil {
@@ -114,14 +123,14 @@ func fileHandler(
 
 }
 
-func makeFileHandler(urlPrefix string, hostDir string) {
+func makeFileHandler(urlPrefix string, hostDir string, static bool) {
 	http.HandleFunc(urlPrefix, func(w http.ResponseWriter, r *http.Request) {
-		fileHandler(w, r, urlPrefix, hostDir)
+		fileHandler(w, r, urlPrefix, hostDir, static)
 	})
 }
 
-func readFileAsString(path string) string {
-	bytes, _ := os.ReadFile(path)
+func readStaticFileAsString(path string) string {
+	bytes, _ := STATIC_CONTENT.ReadFile(path)
 	return string(bytes)
 }
 
@@ -289,7 +298,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		// render page
 
-		page := readFileAsString("./page.html")
+		page := readStaticFileAsString("page.html")
 
 		paramsMap := map[string]string{
 			"[bashScript]":     "maki-upload.sh",
@@ -300,7 +309,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		for param, filename := range paramsMap {
 			page = strings.ReplaceAll(
-				page, param, readFileAsString("./config/"+filename),
+				page, param, readStaticFileAsString("config/"+filename),
 			)
 		}
 
@@ -317,14 +326,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		apiUploadHandler(w, r)
 
 	} else {
-		fileHandler(w, r, "/u/", PUBLIC_DIR)
+		fileHandler(w, r, "/u/", PUBLIC_DIR, false)
 
 	}
 }
 
 func main() {
-	makeFileHandler("/u/bg/", BACKGROUNDS_DIR)
-	makeFileHandler("/u/fonts/", "./fonts/")
+	makeFileHandler("/u/bg/", BACKGROUNDS_DIR, true)
+	makeFileHandler("/u/fonts/", "fonts", true)
 
 	http.HandleFunc("/u/", handler)
 

@@ -1,0 +1,2 @@
+-   compression on disk?
+-   template.ParseFS?

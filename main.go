@@ -173,6 +173,28 @@ func generateName(bytes []byte) string {
 	return name
 }
 
+func removeLastPart(str string, delimiter string) string {
+	index := strings.LastIndex(str, delimiter)
+	if index == -1 {
+		return str
+	}
+	return str[:index]
+}
+
+func getRequestIP(r *http.Request) string {
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip != "" {
+		return ip
+	}
+
+	ip = r.Header.Get("X-Real-IP")
+	if ip != "" {
+		return ip
+	}
+
+	return removeLastPart(r.RemoteAddr, ":")
+}
+
 func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJsonError(w, "not a post request", http.StatusBadRequest)
@@ -236,6 +258,11 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		fileUrl := fmt.Sprintf("https://%s/u/%s", r.Host, filename)
 		fileUrls = append(fileUrls, fileUrl)
+
+		log.Printf(
+			`"%s" uploaded "%s" with "%s"`,
+			getRequestIP(r), filename, token,
+		)
 	}
 
 	writeJson(w, fileUrls, http.StatusOK)

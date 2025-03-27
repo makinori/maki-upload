@@ -1,9 +1,9 @@
 {
-	"Name": "[siteDomain]/u",
+	"Name": "{{.siteDomain}}/u",
 	"Arguments": { "token": "" },
 	"DestinationType": "ImageUploader,TextUploader,FileUploader",
 	"RequestType": "POST",
-	"RequestURL": "https://[siteDomain]/u/api/upload",
+	"RequestURL": "https://{{.siteDomain}}/u/api/upload",
 	"FileFormName": "files",
 	"ResponseType": "Text",
 	"URL": "$json:[0]$"

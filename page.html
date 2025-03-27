@@ -157,7 +157,7 @@
 			}
 		</style>
 	</head>
-	<body style="background-image: url([backgroundUrl])">
+	<body style="background-image: url({{.backgroundUrl}})">
 		<div id="bg"></div>
 		<div id="content">
 			<div id="page-upload">
@@ -181,26 +181,26 @@
 				<h2>Bash Script</h2>
 				<p style="margin-top: 8px">~/maki-upload.sh</p>
 				<textarea readonly spellcheck="false" rows="9">
-[bashScript]</textarea
+{{.bashScript}}</textarea
 				>
 
 				<p style="margin-top: 16px">
 					Nautilus: ~/.local/share/actions-for-nautilus/config.json
 				</p>
 				<textarea readonly spellcheck="false" rows="9">
-[nautilusConfig]</textarea
+{{.nautilusConfig}}</textarea
 				>
 
 				<p style="margin-top: 16px">
 					Dolphin: ~/.local/share/kio/servicemenus/maki-upload.desktop
 				</p>
 				<textarea readonly spellcheck="false" rows="9">
-[dolphinConfig]</textarea
+{{.dolphinConfig}}</textarea
 				>
 
 				<h2 style="margin-top: 16px">ShareX</h2>
 				<textarea readonly spellcheck="false" rows="9">
-[sharexConfig]</textarea
+{{.sharexConfig}}</textarea
 				>
 			</div>
 			<br />

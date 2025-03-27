@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/dustin/go-humanize"
 )
@@ -281,6 +282,33 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 	writeJson(w, fileUrls, http.StatusOK)
 }
 
+func getPageConfigData(r *http.Request) map[string]string {
+	configData := map[string]string{
+		"bashScript":     "maki-upload.sh",
+		"nautilusConfig": "actions-for-nautilus-config.json",
+		"dolphinConfig":  "maki-upload.desktop",
+		"sharexConfig":   "sharex.json",
+	}
+
+	inConfigData := map[string]string{
+		"siteDomain": r.Host,
+	}
+
+	for key, value := range configData {
+		configTmpl, _ := template.New(key).Parse(
+			readStaticFileAsString("config/" + value),
+		)
+
+		var bytes bytes.Buffer
+		configTmpl.Execute(&bytes, inConfigData)
+		config := bytes.String()
+
+		configData[key] = config
+	}
+
+	return configData
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/u/" || r.URL.Path == "/u/index.html" {
 		// handle background cookie
@@ -299,29 +327,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		// render page
 
-		page := readStaticFileAsString("page.html")
-
-		paramsMap := map[string]string{
-			"[bashScript]":     "maki-upload.sh",
-			"[nautilusConfig]": "actions-for-nautilus-config.json",
-			"[dolphinConfig]":  "maki-upload.desktop",
-			"[sharexConfig]":   "sharex.json",
-		}
-
-		for param, filename := range paramsMap {
-			page = strings.ReplaceAll(
-				page, param, readStaticFileAsString("config/"+filename),
-			)
-		}
-
-		page = strings.ReplaceAll(page, "[siteDomain]", r.Host)
-		page = strings.ReplaceAll(page, "[backgroundUrl]",
-			"/u/bg/"+BACKGROUND_NAMES[lastbg],
+		tmpl, _ := template.New("page").Parse(
+			readStaticFileAsString("page.html"),
 		)
 
+		data := getPageConfigData(r)
+		data["backgroundUrl"] = "/u/bg/" + BACKGROUND_NAMES[lastbg]
+
+		var bytes bytes.Buffer
+		tmpl.Execute(&bytes, data)
+
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Content-Length", strconv.Itoa(len(page)))
-		w.Write([]byte(page))
+		w.Header().Add("Content-Length", strconv.Itoa(bytes.Len()))
+		w.Write(bytes.Bytes())
 
 	} else if r.URL.Path == "/u/api/upload" {
 		apiUploadHandler(w, r)

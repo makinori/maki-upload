@@ -1,5 +1,5 @@
 token=""
-api_url="https://[siteDomain]/u/api/upload"
+api_url="https://{{.siteDomain}}/u/api/upload"
 
 filename=$1
 if [[ -z "$filename" ]]; then

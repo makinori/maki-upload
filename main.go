@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
-	"log"
 	"math/rand/v2"
 	"net/http"
 	"os"
@@ -20,6 +19,8 @@ import (
 	"text/template"
 
 	"github.com/dustin/go-humanize"
+
+	"github.com/charmbracelet/log"
 )
 
 //go:embed bg-gifs fonts config page.html
@@ -104,7 +105,7 @@ func fileHandler(
 
 	file, err := os.Open(filepath.Join(hostDir, filename))
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -112,7 +113,7 @@ func fileHandler(
 
 	stat, err := file.Stat()
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -216,7 +217,7 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(gbToBytes(MAX_UPLOAD_SIZE_GB))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		writeJsonError(w, "failed to parse multipart form", http.StatusBadRequest)
 		return
 	}
@@ -231,6 +232,7 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	validToken := slices.Index(TOKENS, token) != -1
 	if !validToken {
+		log.Warnf("invalid token %s (%s)", getRequestIP(r), token)
 		writeJsonError(w, "invalid token", http.StatusBadRequest)
 		return
 	}
@@ -249,7 +251,7 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 		buf := bytes.NewBuffer(nil)
 		_, err := io.Copy(buf, file)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			writeJsonError(
 				w, "internal server error", http.StatusInternalServerError,
 			)
@@ -262,7 +264,7 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = os.WriteFile(filePath, buf.Bytes(), 0644)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			writeJsonError(
 				w, "internal server error", http.StatusInternalServerError,
 			)
@@ -272,7 +274,7 @@ func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
 		fileUrl := fmt.Sprintf("https://%s/u/%s", r.Host, filename)
 		fileUrls = append(fileUrls, fileUrl)
 
-		log.Printf(
+		log.Infof(
 			`%s (%s) uploaded: %s (%s)`,
 			getRequestIP(r), token,
 			filename, humanize.Bytes(uint64(buf.Len())),
@@ -356,13 +358,13 @@ func main() {
 
 	http.HandleFunc("/u/", handler)
 
-	log.Printf(
-		"Starting web server: http://127.0.0.1:%d\n",
+	log.Infof(
+		"Starting web server: http://127.0.0.1:%d",
 		PORT,
 	)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
 	if err != nil {
-		log.Fatalf("Error starting server: %s\n", err)
+		log.Fatalf("Error starting server: %s", err)
 	}
 }

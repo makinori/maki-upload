@@ -125,7 +125,7 @@ func fileHandler(
 
 }
 
-func makeFileHandler(urlPrefix string, hostDir string, static bool) {
+func registerFileHandler(urlPrefix string, hostDir string, static bool) {
 	http.HandleFunc(urlPrefix, func(w http.ResponseWriter, r *http.Request) {
 		fileHandler(w, r, urlPrefix, hostDir, static)
 	})
@@ -351,8 +351,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	makeFileHandler("/u/bg/", BACKGROUNDS_DIR, true)
-	makeFileHandler("/u/fonts/", "fonts", true)
+	registerFileHandler("/u/bg/", BACKGROUNDS_DIR, true)
+	registerFileHandler("/u/fonts/", "fonts", true)
 
 	http.HandleFunc("/u/", handler)
 

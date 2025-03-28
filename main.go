@@ -18,9 +18,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/dustin/go-humanize"
-
 	"github.com/charmbracelet/log"
+	"github.com/dustin/go-humanize"
 )
 
 //go:embed bg-gifs fonts config page.html
@@ -359,12 +358,12 @@ func main() {
 	http.HandleFunc("/u/", handler)
 
 	log.Infof(
-		"Starting web server: http://127.0.0.1:%d",
+		"starting web server: http://127.0.0.1:%d",
 		PORT,
 	)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%d", PORT), nil)
 	if err != nil {
-		log.Fatalf("Error starting server: %s", err)
+		log.Fatalf("error starting server: %s", err)
 	}
 }

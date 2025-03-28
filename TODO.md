@@ -1,1 +1,2 @@
--   compression on disk?
+-   compress uploaded files?
+-   rewrite from top to bottom?

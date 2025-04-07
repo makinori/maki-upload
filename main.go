@@ -17,22 +17,25 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/dustin/go-humanize"
 )
 
-//go:embed bg-gifs fonts config page.html
-var STATIC_CONTENT embed.FS
-
 const (
-	BACKGROUNDS_DIR    = "bg-gifs"
 	MAX_UPLOAD_SIZE_GB = 1
+
+	STATIC_BG_DIR    = "bg-gifs"
+	STATIC_FONTS_DIR = "fonts"
 )
 
 var (
-	BACKGROUND_EXTS  = []string{".jpg", ".png", ".gif"}
-	BACKGROUND_NAMES = getBackgroundNames()
+	//go:embed bg-gifs fonts config page.html
+	STATIC_CONTENT embed.FS
+
+	BG_EXTS  = []string{".jpg", ".png", ".gif"}
+	BG_NAMES = getBgNames()
 
 	PORT, _ = strconv.Atoi(getEnv("PORT", "8080"))
 
@@ -50,8 +53,8 @@ func getEnv(key string, fallback string) string {
 	}
 }
 
-func getBackgroundNames() []string {
-	entries, err := STATIC_CONTENT.ReadDir(BACKGROUNDS_DIR)
+func getBgNames() []string {
+	entries, err := STATIC_CONTENT.ReadDir(STATIC_BG_DIR)
 
 	if err != nil {
 		return []string{}
@@ -66,7 +69,7 @@ func getBackgroundNames() []string {
 
 		filename := entry.Name()
 
-		if slices.Contains(BACKGROUND_EXTS[:], filepath.Ext(filename)) {
+		if slices.Contains(BG_EXTS[:], filepath.Ext(filename)) {
 			filenames = append(filenames, filename)
 		}
 	}
@@ -74,7 +77,7 @@ func getBackgroundNames() []string {
 	return filenames
 }
 
-func handleEtag(w http.ResponseWriter, r *http.Request, stat os.FileInfo) bool {
+func handleStatEtag(w http.ResponseWriter, r *http.Request, stat os.FileInfo) bool {
 	hashInput := (strconv.FormatInt(stat.ModTime().Unix(), 16) +
 		strconv.FormatInt(stat.Size(), 16))
 
@@ -91,44 +94,64 @@ func handleEtag(w http.ResponseWriter, r *http.Request, stat os.FileInfo) bool {
 	return false
 }
 
-func fileHandler(
-	w http.ResponseWriter, r *http.Request, rootPath string, hostDir string,
-	static bool,
-) {
-	filename := strings.Replace(r.URL.Path, rootPath, "", 1)
+func handleByteEtag(w http.ResponseWriter, r *http.Request, data []byte) bool {
+	hash := md5.Sum([]byte(data))
 
-	if static {
-		http.ServeFileFS(w, r, STATIC_CONTENT, filepath.Join(hostDir, filename))
-		return
+	etag := fmt.Sprintf(`W/"%s"`, hex.EncodeToString(hash[:]))
+
+	if strings.Contains(r.Header.Get("If-None-Match"), etag) {
+		w.WriteHeader(http.StatusNotModified)
+		return true
 	}
 
-	file, err := os.Open(filepath.Join(hostDir, filename))
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	if handleEtag(w, r, stat) {
-		return
-	}
-
-	http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
-
+	w.Header().Add("ETag", etag)
+	return false
 }
 
-func registerFileHandler(urlPrefix string, hostDir string, static bool) {
-	http.HandleFunc(urlPrefix, func(w http.ResponseWriter, r *http.Request) {
-		fileHandler(w, r, urlPrefix, hostDir, static)
-	})
+func makeFileHandler(dirOnDisk string, staticContent bool) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filename := r.PathValue("file")
+
+		if staticContent {
+			// http.ServeFileFS(w, r, STATIC_CONTENT, filepath.Join(dirOnDisk, filename))
+
+			data, err := STATIC_CONTENT.ReadFile(filepath.Join(dirOnDisk, filename))
+			if err != nil {
+				log.Error(err)
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			if handleByteEtag(w, r, data) {
+				return
+			}
+
+			http.ServeContent(w, r, filename, time.Now(), bytes.NewReader(data))
+
+		} else {
+
+			file, err := os.Open(filepath.Join(dirOnDisk, filename))
+			if err != nil {
+				log.Error(err)
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			defer file.Close()
+
+			stat, err := file.Stat()
+			if err != nil {
+				log.Error(err)
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			if handleStatEtag(w, r, stat) {
+				return
+			}
+
+			http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
+		}
+	}
 }
 
 func readStaticFileAsString(path string) string {
@@ -209,11 +232,6 @@ func getRequestIP(r *http.Request) string {
 }
 
 func apiUploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJsonError(w, "not a post request", http.StatusBadRequest)
-		return
-	}
-
 	err := r.ParseMultipartForm(gbToBytes(MAX_UPLOAD_SIZE_GB))
 	if err != nil {
 		log.Error(err)
@@ -310,52 +328,47 @@ func getPageConfigData(r *http.Request) map[string]string {
 	return configData
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/u/" || r.URL.Path == "/u/index.html" {
-		// handle background cookie
+func pageHandler(w http.ResponseWriter, r *http.Request) {
+	// handle background cookie
 
-		lastbg := getCookieAsInt(r.Cookies(), "lastbg", -1)
-		if lastbg == -1 {
-			lastbg = rand.IntN(len(BACKGROUND_NAMES))
-		} else {
-			lastbg = (lastbg + 1) % len(BACKGROUND_NAMES)
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:  "lastbg",
-			Value: strconv.Itoa(lastbg),
-		})
-
-		// render page
-
-		tmpl, _ := template.New("page").Parse(
-			readStaticFileAsString("page.html"),
-		)
-
-		data := getPageConfigData(r)
-		data["backgroundUrl"] = "/u/bg/" + BACKGROUND_NAMES[lastbg]
-
-		var bytes bytes.Buffer
-		tmpl.Execute(&bytes, data)
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Content-Length", strconv.Itoa(bytes.Len()))
-		w.Write(bytes.Bytes())
-
-	} else if r.URL.Path == "/u/api/upload" {
-		apiUploadHandler(w, r)
-
+	lastbg := getCookieAsInt(r.Cookies(), "lastbg", -1)
+	if lastbg == -1 {
+		lastbg = rand.IntN(len(BG_NAMES))
 	} else {
-		fileHandler(w, r, "/u/", PUBLIC_DIR, false)
-
+		lastbg = (lastbg + 1) % len(BG_NAMES)
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:  "lastbg",
+		Value: strconv.Itoa(lastbg),
+	})
+
+	// render page
+
+	tmpl, _ := template.New("page").Parse(
+		readStaticFileAsString("page.html"),
+	)
+
+	data := getPageConfigData(r)
+	data["backgroundUrl"] = "/u/bg/" + BG_NAMES[lastbg]
+
+	var bytes bytes.Buffer
+	tmpl.Execute(&bytes, data)
+
+	w.Header().Add("Content-Type", "text/html")
+	w.Header().Add("Content-Length", strconv.Itoa(bytes.Len()))
+	w.Write(bytes.Bytes())
 }
 
 func main() {
-	registerFileHandler("/u/bg/", BACKGROUNDS_DIR, true)
-	registerFileHandler("/u/fonts/", "fonts", true)
+	http.HandleFunc("POST /u/api/upload", apiUploadHandler)
 
-	http.HandleFunc("/u/", handler)
+	http.HandleFunc("GET /u/bg/{file...}", makeFileHandler(STATIC_BG_DIR, true))
+	http.HandleFunc("GET /u/fonts/{file...}", makeFileHandler("fonts", true))
+
+	http.HandleFunc("GET /u/{$}", pageHandler)
+
+	http.HandleFunc("GET /u/{file...}", makeFileHandler(PUBLIC_DIR, false))
 
 	log.Infof(
 		"starting web server: http://127.0.0.1:%d",
